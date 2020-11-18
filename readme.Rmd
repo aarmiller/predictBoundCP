@@ -1,0 +1,17 @@
+---
+title: "Prediction Bound Change-Point Method"
+output: rmarkdown::github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## Overview of Package
+
+This is a quick overview of the approach to 
+
+```{r cars}
+data(visit_counts)
+```
