@@ -23,3 +23,11 @@ diagnosis to include in the training window)}
 \description{
 Fit Change Point
 }
+\examples{
+
+fit_cp_model(count_data = visit_counts,
+             low = 40,high = 180,
+             model = "lm",
+             plot = FALSE)
+
+}
