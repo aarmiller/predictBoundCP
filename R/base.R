@@ -1,0 +1,5 @@
+#usethis::use_package("tibble")
+#usethis::use_package("dplyr")
+#usethis::use_package("multidplyr")
+#usethis::use_package("rlang")
+#usethis::use_pipe()
