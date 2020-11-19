@@ -99,6 +99,45 @@ fit_cp_model <- function(count_data,low,high,model="lm",plot=TRUE,level=0.95){
       dplyr::mutate_at(dplyr::vars(fit,lwr,upr),dplyr::funs(ifelse(days_since_dx< -high,NA,.))) %>%
       dplyr::mutate(type=ifelse(dplyr::between(-days_since_dx,low,high),"Fitted","Predicted")) %>%
       dplyr::filter(days_since_dx<0)
+
+  } else if (model=="auto_arima") {
+
+    tmp_dat <- count_data %>%
+      dplyr::filter(dplyr::between(-days_since_dx,low,high))
+
+    # fit auto.arima model
+    tmp_fit <- forecast::auto.arima(tmp_dat$n)
+
+    # compute the upper and lower prediction bounds for in-sample data
+    tmp_upper <- fitted(tmp_fit) + abs(qnorm((1-level)/2))*sqrt(tmp_fit$sigma2)
+    tmp_lower <- fitted(tmp_fit) - abs(qnorm((1-level)/2))*sqrt(tmp_fit$sigma2)
+
+    # generate the forecasts in the out-of-sample data
+    tmp_forecast <- forecast::forecast(tmp_fit,
+                                       h=low,
+                                       level = level)
+
+    # add fitted values and prediction bounds to in-sample data
+    tmp2 <- tmp_dat %>%
+      dplyr::select(days_since_dx) %>%
+      dplyr::mutate(fit=fitted(tmp_fit),
+                    lwr=tmp_lower,
+                    upr=tmp_upper,
+                    type="Fitted")
+
+    # add fitted values and prediction bounds to out-of-sample data
+    tmp3 <- tibble::tibble(days_since_dx=-(0:(low-1))) %>%
+      dplyr::arrange(days_since_dx) %>%
+      dplyr::mutate(fit=tmp_forecast$mean,
+                    lwr=tmp_forecast$lower[,1],
+                    upr=tmp_forecast$upper[,1],
+                    type="Predicted")
+
+    # join together predictions and add to the original data
+    tmp_pred <- dplyr::left_join(count_data,
+                                 dplyr::bind_rows(tmp2,tmp3),
+                                 by = "days_since_dx")
+
   }
 
   if (level > 0){
@@ -125,14 +164,17 @@ fit_cp_model <- function(count_data,low,high,model="lm",plot=TRUE,level=0.95){
 
     p <- tmp_pred %>%
       dplyr::filter(-days_since_dx<=high) %>%
-      ggplot2::ggplot(ggplot2::aes(days_since_dx,n)) +
+      ggplot2::ggplot(ggplot2::aes(-days_since_dx,n)) +
       ggplot2::geom_point() +
+      ggplot2::scale_x_reverse() +
       ggplot2::theme_minimal() +
       ggplot2::geom_line(ggplot2::aes(y=fit,linetype=type),color="red",size=1.5) +
       ggplot2::geom_ribbon(ggplot2::aes(ymin=lwr,ymax=upr),fill="red",alpha=0.3) +
-      ggplot2::geom_vline(ggplot2::aes(xintercept=tmp_cp)) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept=-tmp_cp)) +
       ggplot2::ggtitle(paste0(model," model (cp = ",-tmp_cp,")")) +
-      ggplot2::theme(legend.position = c(0.2, 0.8))
+      ggplot2::theme(legend.position = c(0.2, 0.8)) +
+      ggplot2::xlab("Days before diagnosis") +
+      ggplot2::ylab("Number of SSD visits")
 
   }
 
