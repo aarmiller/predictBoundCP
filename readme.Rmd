@@ -115,7 +115,7 @@ mod5$plot
 The function `fit_cp_profile()` creates a profile of change-points using a range
 of different models, training windows and prediction bounds.
 
-``` {r}
+``` {r warning=FALSE, message=FALSE}
 profile_res <- fit_cp_profile(count_data = visit_counts,
                               low = 40,
                               high = 180)
