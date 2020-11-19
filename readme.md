@@ -138,3 +138,45 @@ mod5$plot
 
 The function `fit_cp_profile()` creates a profile of change-points using
 a range of different models, training windows and prediction bounds.
+
+``` r
+profile_res <- fit_cp_profile(count_data = visit_counts,
+                              low = 40,
+                              high = 180)
+```
+
+We can view the change-points and the results across the various
+parameters:
+
+``` r
+profile_res
+```
+
+    ## # A tibble: 1,905 x 6
+    ##      low  high model      bound res                 cp
+    ##    <int> <dbl> <chr>      <dbl> <list>           <dbl>
+    ##  1    40   180 lm          0    <named list [3]>    33
+    ##  2    40   180 lm          0.9  <named list [3]>    25
+    ##  3    40   180 lm          0.95 <named list [3]>    25
+    ##  4    40   180 exp         0    <named list [3]>    32
+    ##  5    40   180 exp         0.9  <named list [3]>    25
+    ##  6    40   180 exp         0.95 <named list [3]>    23
+    ##  7    40   180 lm_period   0    <named list [3]>    33
+    ##  8    40   180 lm_period   0.9  <named list [3]>    32
+    ##  9    40   180 lm_period   0.95 <named list [3]>    25
+    ## 10    40   180 exp_period  0    <named list [3]>    33
+    ## # … with 1,895 more rows
+
+Or we can plot the results across different lower bounds used in the
+training data:
+
+``` r
+profile_res %>% 
+  ggplot2::ggplot(aes(low,cp,color=model)) +
+  ggplot2::geom_line() +
+  ggplot2::facet_wrap(~bound) +
+  ggplot2::theme_minimal() + 
+  ggplot2::theme(legend.position="bottom")
+```
+
+![](readme_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->

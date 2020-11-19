@@ -115,3 +115,23 @@ mod5$plot
 The function `fit_cp_profile()` creates a profile of change-points using a range
 of different models, training windows and prediction bounds.
 
+``` {r}
+profile_res <- fit_cp_profile(count_data = visit_counts,
+                              low = 40,
+                              high = 180)
+```
+
+We can view the change-points and the results across the various parameters:
+``` {r}
+profile_res
+```
+
+Or we can plot the results across different lower bounds used in the training data:
+``` {r}
+profile_res %>% 
+  ggplot2::ggplot(aes(low,cp,color=model)) +
+  ggplot2::geom_line() +
+  ggplot2::facet_wrap(~bound) +
+  ggplot2::theme_minimal() + 
+  ggplot2::theme(legend.position="bottom")
+````

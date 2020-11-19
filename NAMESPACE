@@ -2,6 +2,7 @@
 
 export("%>%")
 export(fit_cp_model)
+export(fit_cp_profile)
 export(plot_ssd_curve)
 importFrom(magrittr,"%>%")
 importFrom(rlang,.data)

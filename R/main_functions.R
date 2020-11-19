@@ -182,4 +182,45 @@ fit_cp_model <- function(count_data,low,high,model="lm",plot=TRUE,level=0.95){
               cp=-tmp_cp,
               fits=tmp_pred))
 
+}
+
+
+#' Generate Change Point Profile
+#'
+#' @importFrom rlang .data
+#
+#' @param count_data A dataset of visit counts, must contain variables 'days_since_dx' and
+#' 'n'. Where 'days_since_dx' is the number of days since diagnosis (negative values
+#' before diagnosis) and 'n' are the number of visits
+#' @param low the low value in the training window (i.e., the point closest to
+#' diagnosis to include in the training window)
+#' @param high the high value in the training window (i.e., the point furthest from
+#' diagnosis to include in the training window)
+#' @param models the set of models
+#' @param levels the set of levels
+#'
+#'
+#' @export
+fit_cp_profile <- function(count_data,low,high,models=c("lm","exp","lm_period","exp_period","auto_arima"),levels=c(0,0.90,0.95),window_grid=NA){
+
+  if (is.na(window_grid)){
+    window_grid <- tibble::tibble(low=low:(high-14),
+                                  high=high)
   }
+
+  tmp <- window_grid %>%
+    dplyr::mutate(model=purrr::map(high,~models)) %>%
+    tidyr::unnest(model) %>%
+    dplyr::mutate(bound=map(high,~levels)) %>%
+    tidyr::unnest(bound) %>%
+    dplyr::mutate(res=purrr::pmap(list(low,high,model,bound),function(a,b,c,d) fit_cp_model(count_data = count_data,
+                                                                                            low = a,high = b,
+                                                                                            model = c,
+                                                                                            plot = FALSE,
+                                                                                            level = d))) %>%
+    dplyr::mutate(cp=purrr::map_dbl(res,~.$cp))
+
+  tmp
+}
+
+
